@@ -4,6 +4,8 @@ ARG USERNAME=scotthal
 ARG USER_UID=1100
 ARG USER_GID=$USER_UID
 
+ARG ZIG_VERSION=0.14.0
+
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update; \
@@ -11,17 +13,25 @@ RUN apt-get update; \
   apt-get -y install build-essential autoconf automake cmake ninja-build m4 bison flex gettext; \
   apt-get -y install libssl-dev libcurl4-openssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev libelf-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl; \
   apt-get -y install libgmp-dev; \
-  apt-get -y dist-upgrade; \
-  echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen; \
+  apt-get -y dist-upgrade;
+  
+RUN echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen; \
   locale-gen; \
-  update-locale LANG=en_US.UTF-8; \
-  mkdir /tmp/zig-unz; \
-  curl -L https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz | xz -dc | tar -C /tmp/zig-unz -xf -; \
+  update-locale LANG=en_US.UTF-8;
+  
+RUN mkdir /tmp/zig-unz; \
+  curl -L https://ziglang.org/download/$ZIG_VERSION/zig-linux-x86_64-$ZIG_VERSION.tar.xz | xz -dc | tar -C /tmp/zig-unz -xf -; \
   install /tmp/zig-unz/zig-linux*/zig /usr/local/bin; \
   cp -a /tmp/zig-unz/zig-linux*/lib /usr/local/lib/zig; \
   cp -a /tmp/zig-unz/zig-linux*/doc /usr/local/share/zig; \
-  rm -rf /tmp/zig-unz; \
-  groupadd --gid $USER_GID $USERNAME; \
+  rm -rf /tmp/zig-unz; 
+
+RUN mkdir /tmp/zls-unz; \
+    curl -L https://builds.zigtools.org/zls-linux-x86_64-$ZIG_VERSION.tar.xz | xz -dc | tar -C /tmp/zls-unz -xf -; \
+    install /tmp/zls-unz/zls /usr/local/bin; \
+    rm -rf /tmp/zls-unz;
+
+RUN groupadd --gid $USER_GID $USERNAME; \
   useradd -s /bin/zsh --uid $USER_UID --gid $USER_GID -m $USERNAME; \
   echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME; \
   chmod 440 /etc/sudoers.d/$USERNAME; \
