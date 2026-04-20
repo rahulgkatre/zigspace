@@ -1,3 +1,5 @@
 {
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "zig.path": "zig",
+  "zig.zls.path": "zls"
 }
